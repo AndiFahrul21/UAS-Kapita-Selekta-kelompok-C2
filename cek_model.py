@@ -1,18 +1,25 @@
 import pandas as pd
 from pycaret.classification import load_model, predict_model
 
-m_lengkap = load_model("models/model_jantung")
-m_dasar = load_model("models/model_jantung_dasar")
+from prediksi import prediksi
 
-# 11 atribut yang dipakai kedua model
-dasar = {"age": 58, "sex": 1, "cp": 4, "trestbps": 140, "chol": 260,
-         "fbs": 0, "restecg": 2, "thalach": 120, "exang": 1,
-         "oldpeak": 2.0, "slope": 2}
+model = load_model("models/model_jantung")
 
-# Model lengkap menerima 13 atribut, model dasar hanya 11
-h1 = predict_model(m_lengkap, data=pd.DataFrame([{**dasar, "ca": 2, "thal": 7}]),
-                   raw_score=True)
-h2 = predict_model(m_dasar, data=pd.DataFrame([dasar]), raw_score=True)
+# Pasien contoh pada isian formulir (kode UCI)
+formulir = {"age": 58, "sex": 1, "cp": 4, "trestbps": 140, "chol": 260,
+            "fbs": 0, "restecg": 2, "thalach": 120, "exang": 1,
+            "oldpeak": 2.0, "slope": 2, "ca": 2, "thal": 7}
 
-print("\nMODEL LENGKAP\n", h1.T)
-print("\nMODEL DASAR (tanpa ca dan thal)\n", h2.T)
+# Pasien yang sama pada kode dataset model (cp 4->0, restecg 2->0, slope 2->1, thal 7->3)
+kode_model = {"age": 58, "sex": 1, "cp": 0, "trestbps": 140, "chol": 260,
+              "fbs": 0, "restecg": 0, "thalach": 120, "exang": 1,
+              "oldpeak": 2.0, "slope": 1, "ca": 2.0, "thal": 3.0}
+
+h = predict_model(model, data=pd.DataFrame([kode_model]), raw_score=True,
+                  round=6)
+print("\nMODEL (dipanggil langsung)\n", h.T)
+
+p_langsung = float(h["prediction_score_1"].iloc[0])
+p_web = prediksi(formulir)["peluang"]
+print(f"\nPeluang langsung: {p_langsung:.4f} | lewat prediksi.py (web): {p_web:.4f}")
+print("SAMA" if abs(p_langsung - p_web) < 1e-6 else "BERBEDA")

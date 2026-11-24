@@ -5,8 +5,21 @@ import streamlit as st
 
 import riwayat
 from bidang import CONTOH, GRUP, LABEL
-from prediksi import (BATAS_RENDAH, BATAS_TINGGI, KOLOM_13, LANJUTAN,
+from prediksi import (BATAS_RENDAH, BATAS_TINGGI, KOLOM_13,
                       muat_metrik, prediksi, validasi)
+
+# Jalur keputusan tiap ujung pohon model v2, dicari lewat (pasien latih, sakit).
+# Sesuai aturan pohon di models/metrics.json. Bila model dilatih ulang dan
+# jumlahnya berubah, jalur tidak ditampilkan (tidak salah label).
+JALUR = {
+    (109, 84): "Uji thalium bukan normal (cacat tetap atau cacat reversibel).",
+    (96, 10): "Uji thalium normal dan tidak ada pembuluh darah utama yang "
+              "terlihat (0).",
+    (26, 16): "Uji thalium normal, pembuluh darah utama 1 sampai 3, dan jenis "
+              "nyeri dada bukan non-angina.",
+    (10, 0): "Uji thalium normal, pembuluh darah utama 1 sampai 3, dan jenis "
+             "nyeri dada non-angina.",
+}                
 
 
 def _html(teks):
@@ -23,11 +36,6 @@ def _buka_tab(nama):
 
 
 # ---------- state dan tombol bantu ----------
-def _mulai_state():
-    for k in LANJUTAN:   # ca dan thal: bawaan "Belum diperiksa"
-        st.session_state.setdefault(f"f_{k}", "kosong")
-
-
 def _isi_contoh():
     for k in KOLOM_13:
         st.session_state[f"f_{k}"] = CONTOH[k]
@@ -37,7 +45,7 @@ def _isi_contoh():
 
 def _kosongkan():
     for k in KOLOM_13:
-        st.session_state[f"f_{k}"] = "kosong" if k in LANJUTAN else None
+        st.session_state[f"f_{k}"] = None
     st.session_state["f_nama"] = ""
     st.session_state["galat"] = {}
     st.session_state["hasil_terakhir"] = None
@@ -47,8 +55,7 @@ def _kosongkan():
 def _ambil_data():
     data = {}
     for k in KOLOM_13:
-        v = st.session_state.get(f"f_{k}")
-        data[k] = None if v == "kosong" else v
+        data[k] = st.session_state.get(f"f_{k}")
     return data
 
 
@@ -64,9 +71,6 @@ def _bidang(f, galat):
     else:
         nama = dict(f["pilihan"])
         opsi = [k for k, _ in f["pilihan"]]
-        if f.get("kosong"):
-            opsi = ["kosong"] + opsi
-            nama["kosong"] = "Belum diperiksa"
         if f["jenis"] == "radio":
             st.radio(f["label"], opsi, format_func=nama.get, index=None,
                      horizontal=True, key=kunci)
@@ -117,7 +121,7 @@ def _panel(metrik):
         luar = (f'<p class="extra">Nilai {nama} berada di luar rentang data '
                 f'latih. Prediksi pada nilai ini kurang dapat diandalkan.</p>')
 
-    imp = list(m["importance"].items())[:7]
+    imp = [(k, v) for k, v in m["importance"].items() if v > 0][:7]
     maks = imp[0][1] or 1
     batang = "".join(
         f'<div class="bar"><span>{LABEL[k]}</span>'
@@ -216,7 +220,6 @@ def tab_prediksi():
         st.error(str(e))
         return
 
-    _mulai_state()
     galat = st.session_state.get("galat", {})
     kiri, kanan = st.columns([1.3, 1], gap="large")
 

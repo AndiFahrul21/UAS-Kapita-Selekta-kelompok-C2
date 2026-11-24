@@ -1,7 +1,6 @@
 """bidang.py - definisi isian form, label, dan contoh pasien."""
 
 # (judul kelompok, [isian]). jenis: angka / radio / pilih.
-# kosong=True: ada pilihan "Belum diperiksa" (dikirim sebagai kosong).
 GRUP = [
     ("Data umum", [
         {"id": "nama", "label": "Nama pasien", "jenis": "teks",
@@ -44,12 +43,11 @@ GRUP = [
     ]),
     ("Pemeriksaan lanjutan", [
         {"id": "ca", "label": "Pembuluh darah utama pada fluoroskopi",
-         "jenis": "pilih", "kosong": True,
+         "jenis": "pilih",
          "pilihan": [(0, "0"), (1, "1"), (2, "2"), (3, "3")],
-         "bantuan": "Jumlah yang terlihat. Pilih \"Belum diperiksa\" bila "
-                    "hasilnya belum ada."},
+         "bantuan": "Jumlah pembuluh darah utama yang terlihat."},
         {"id": "thal", "label": "Hasil uji thalium (thal)",
-         "jenis": "pilih", "kosong": True,
+         "jenis": "pilih",
          "pilihan": [(3, "Normal"), (6, "Cacat tetap"),
                      (7, "Cacat reversibel")],
          "bantuan": "Uji perfusi thalium, bukan kelainan darah thalassemia."},

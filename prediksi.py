@@ -26,6 +26,23 @@ RENTANG = {"age": (20, 100), "trestbps": (80, 220), "chol": (100, 600),
 PILIHAN = {"sex": {0, 1}, "cp": {1, 2, 3, 4}, "fbs": {0, 1},
            "restecg": {0, 1, 2}, "exang": {0, 1}, "slope": {1, 2, 3},
            "ca": {0, 1, 2, 3}, "thal": {3, 6, 7}}
+# Kode formulir (kode UCI) -> kode dataset model (berkas laporan)
+PETA_KODE = {"cp": {1: 3, 2: 1, 3: 2, 4: 0},
+             "restecg": {0: 1, 1: 2, 2: 0},
+             "slope": {1: 2, 2: 1, 3: 0},
+             "thal": {3: 2, 6: 1, 7: 3}}
+KOLOM_BULAT = ["sex", "cp", "fbs", "restecg", "exang", "slope"]
+
+
+def ke_kode_model(data):
+    """Terjemahkan isian formulir ke kode yang dipelajari model."""
+    d = {}
+    for k in KOLOM_13:
+        v = float(data[k])
+        if k in PETA_KODE:
+            v = float(PETA_KODE[k][int(v)])
+        d[k] = int(v) if k in KOLOM_BULAT else v
+    return d
 
 
 def _angka(v):
@@ -47,8 +64,7 @@ def validasi(data):
             galat[k] = "Harus berupa angka."
             continue
         if v is None:
-            if k not in LANJUTAN:
-                galat[k] = "Wajib diisi."
+            galat[k] = "Wajib diisi."
         elif k in RENTANG:
             lo, hi = RENTANG[k]
             if not lo <= v <= hi:
@@ -105,20 +121,15 @@ def _ujung(p, daun):
 
 
 def prediksi(data, metrik=None):
-    """data: dict 13 atribut (ca dan thal boleh None).
-    Mengembalikan dict hasil. Memunculkan ValueError bila input tidak valid."""
+    """data: dict 13 atribut (kode formulir). Mengembalikan dict hasil.
+    Memunculkan ValueError bila input tidak valid."""
     galat = validasi(data)
     if galat:
         raise ValueError(f"Input tidak valid: {galat}")
     metrik = metrik or muat_metrik()
 
-    # KONTRAK bagian 4: ca atau thal kosong -> model dasar
-    lengkap = all(_angka(data.get(k)) is not None for k in LANJUTAN)
-    kunci, nama, kolom = (("lengkap", "model_jantung", KOLOM_13) if lengkap
-                          else ("dasar", "model_jantung_dasar", KOLOM_11))
-
-    df = pd.DataFrame([{k: float(data[k]) for k in kolom}], columns=kolom)
-    hasil = predict_model(_muat(nama), data=df, raw_score=True,
+    df = pd.DataFrame([ke_kode_model(data)], columns=KOLOM_13)
+    hasil = predict_model(_muat("model_jantung"), data=df, raw_score=True,
                           round=6, verbose=False)
     p = float(hasil["prediction_score_1"].iloc[0])   # peluang ada penyakit
 
@@ -127,10 +138,9 @@ def prediksi(data, metrik=None):
         "peluang": p,
         "kategori": kode,
         "label": label,
-        "model": kunci,
-        "catatan_model": "" if lengkap else
-            "Dihitung tanpa pemeriksaan lanjutan (ca/thal), kurang akurat.",
+        "model": "lengkap",
+        "catatan_model": "",
         "di_luar_rentang": di_luar_rentang(
             data, metrik["lengkap"]["train_ranges"]),
-        "ujung": _ujung(p, metrik[kunci]["daun"]),
+        "ujung": _ujung(p, metrik["lengkap"]["daun"]),
     }
