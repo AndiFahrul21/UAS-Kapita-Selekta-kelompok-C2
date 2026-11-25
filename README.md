@@ -8,9 +8,6 @@ kasus **C2: RS Jantung Pratama Sentosa**.
 > dipakai langsung untuk keputusan klinis. Hanya memakai data fiktif atau dataset publik
 > yang sudah dide-identifikasi.
 
-## Branch
-- `v2` (branch ini): versi yang sesuai dengan laporan proposal (alur pelatihan dan angka evaluasi sama).
-- `main`: versi awal dengan alur pelatihan dan dataset berbeda.
 
 ## Tujuan
 Membantu memprioritaskan antrean pemeriksaan lanjutan di poli jantung sebagai informasi
@@ -38,7 +35,7 @@ Daftar lengkap ada di `requirements.txt`.
 ## Cara menjalankan (Windows PowerShell)
 1. Ambil repositori (branch `v2`):
    ```powershell
-   git clone -b v2 https://github.com/AndiFahrul21/UAS-Kapita-Selekta-kelompok-C2.git
+   git clone https://github.com/AndiFahrul21/UAS-Kapita-Selekta-kelompok-C2.git
    cd UAS-Kapita-Selekta-kelompok-C2
    ```
 2. Buat dan aktifkan lingkungan virtual:
