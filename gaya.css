@@ -231,6 +231,16 @@
 .stApp .role { display: block; color: #943551; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
 .stApp .mem p { margin: 0; color: #7A4A5C; font-size: 13.5px; }
 
+/* Jalur keputusan pada panel hasil */
+.st-key-panel_hasil .jalur {
+  margin: 10px 0 4px;
+  padding: 8px 12px;
+  border-left: 4px solid #943551;
+  background: rgba(148, 53, 81, 0.08);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.92rem;
+  color: #56172E;
+}
 /* ================= Tablet dan HP ================= */
 @media (max-width: 900px) {
     .stApp .cols { grid-template-columns: minmax(0, 1fr); }

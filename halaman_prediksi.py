@@ -19,8 +19,7 @@ JALUR = {
               "nyeri dada bukan non-angina.",
     (10, 0): "Uji thalium normal, pembuluh darah utama 1 sampai 3, dan jenis "
              "nyeri dada non-angina.",
-}                
-
+}
 
 def _html(teks):
     """Satukan HTML jadi satu baris (baris kosong memutus blok HTML)."""
@@ -100,6 +99,7 @@ def _panel(metrik):
     h = akhir["hasil"]
     p = h["peluang"]
     m = metrik[h["model"]]
+    n_ujung = len(m["daun"])    
     nama_html = escape(akhir.get("nama", ""))   # escape: nama diketik pengguna
     label = h["label"]
     kelas = {"rendah": "low", "sedang": "mid", "tinggi": "high"}[h["kategori"]]
@@ -113,6 +113,10 @@ def _panel(metrik):
         u = h["ujung"]
         ujung = (f'<p class="ujung">{u["sakit"]} dari {u["n"]} pasien latih '
                  f'di kelompok ini sakit.</p>')
+        jalur = JALUR.get((u["n"], u["sakit"]))
+        if jalur:
+            ujung = (f'<p class="jalur"><b>Jalur keputusan pasien ini:</b> '
+                     f'{escape(jalur)}</p>') + ujung
     catatan_model = (f'<p class="extra">{h["catatan_model"]}</p>'
                      if h["catatan_model"] else "")
     luar = ""
@@ -161,9 +165,8 @@ def _panel(metrik):
           <span style="width:{w3}%">Tinggi</span>
         </div>
         {ujung}{peringatan_rendah}{catatan_model}{luar}
-        <p class="note">Gunakan sebagai bahan pertimbangan prioritas saja.
-        Batas kategori (40% dan 65%) ditentukan dari ujung pohon pada data
-        latih, bukan standar klinis.</p>
+        <p class="note">Gunakan sebagai bahan pertimbangan prioritas saja. Batas kategori (40% dan 65%) ditentukan dari ujung
+        pohon pada data latih, bukan standar klinis.</p>
         <hr class="pisah">
         <p class="sub">Faktor paling berpengaruh pada model</p>
         <div class="bars">{batang}</div>
